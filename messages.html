@@ -20,7 +20,6 @@
   </div>
 
   <div class="container">
-    <!-- Device Selector -->
     <div class="section-card" style="background:linear-gradient(135deg, rgba(0,229,255,0.08), rgba(0,255,136,0.05)); border:1px solid rgba(0,229,255,0.15);">
       <label style="color:#00e5ff;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:10px;">Select Device</label>
       <select id="deviceSelect" onchange="onDeviceChange()" style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);font-size:14px;font-weight:700;background:rgba(10,14,26,0.7);color:#fff;">
@@ -28,20 +27,16 @@
       </select>
     </div>
 
-    <!-- Filter Tabs -->
     <div class="filter-tabs">
       <button class="active" onclick="setFilter('all', this)">All</button>
       <button onclick="setFilter('incoming', this)">Incoming</button>
       <button onclick="setFilter('sent', this)">Sent</button>
     </div>
 
-    <!-- Search -->
     <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search by number or body..." oninput="filterMessages()">
 
-    <!-- Message Count -->
     <div style="color:#94a3b8;font-size:12px;font-weight:700;margin-bottom:12px;letter-spacing:1px;" id="msgCount">0 messages</div>
 
-    <!-- Messages List -->
     <div id="messageList">
       <div class="loading">Select a device to load messages</div>
     </div>
@@ -50,7 +45,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
   <script src="js/messages.js"></script>
 </body>
 </html>
