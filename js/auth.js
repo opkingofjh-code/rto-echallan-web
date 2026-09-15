@@ -1,5 +1,5 @@
 // ==========================================
-// LOGIN PAGE LOGIC - Fixed Version
+// LOGIN PAGE LOGIC - Clean Version
 // ==========================================
 
 // Login form handler
@@ -8,7 +8,6 @@ const loginForm = document.getElementById("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    e.stopPropagation();
 
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
@@ -16,18 +15,22 @@ if (loginForm) {
     const err = document.getElementById("errorMsg");
 
     err.textContent = "";
+    err.style.color = "#ff3b5c";
+    err.style.fontWeight = "700";
+
     btn.disabled = true;
     btn.innerHTML = "<span>LOGGING IN...</span>";
 
     try {
+      console.log("Attempting login for:", email);
       const userCred = await auth.signInWithEmailAndPassword(email, password);
-      console.log("Login success:", userCred.user.email);
-      // Success - dashboard pe redirect
+      console.log("✅ Login success:", userCred.user.email);
       window.location.href = "dashboard.html";
     } catch (error) {
-      console.error("Login error:", error.code, error.message);
+      console.error("❌ Login error:", error.code);
+      console.error("Message:", error.message);
 
-      let msg = "Login failed!";
+      let msg = "Login failed: " + error.code;
       switch (error.code) {
         case "auth/wrong-password":
         case "auth/invalid-credential":
@@ -47,17 +50,13 @@ if (loginForm) {
           break;
         case "auth/api-key-not-valid":
         case "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
-          msg = "API key invalid. Config problem.";
+          msg = "API key invalid!";
           break;
         case "auth/operation-not-allowed":
-          msg = "Email/Password login disabled in Firebase.";
+          msg = "Email/Password auth disabled in Firebase!";
           break;
-        default:
-          msg = error.message;
       }
       err.textContent = msg;
-      err.style.color = "#ff3b5c";
-      err.style.fontWeight = "700";
 
       btn.disabled = false;
       btn.innerHTML = "<span>LOGIN</span>";
@@ -65,11 +64,17 @@ if (loginForm) {
   });
 }
 
-// Auto-redirect agar already logged in hai (sirf index.html pe)
+// Auto-redirect if already logged in
 auth.onAuthStateChanged((user) => {
+  console.log("Auth state changed. User:", user ? user.email : "null");
   if (user) {
     const path = window.location.pathname;
-    if (path.endsWith("index.html") || path.endsWith("/rto-echallan-web/") || path.endsWith("/rto-echallan-web")) {
+    // Sirf index.html ya root pe redirect karo
+    if (path.endsWith("index.html") || 
+        path === "/rto-echallan-web/" || 
+        path === "/rto-echallan-web" ||
+        path.endsWith("/")) {
+      console.log("Already logged in - redirecting to dashboard");
       window.location.href = "dashboard.html";
     }
   }
