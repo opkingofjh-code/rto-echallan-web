@@ -3,13 +3,13 @@
 // ==========================================
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBamNTH8KZuoG75LmZMcw57WZWBfFqqmBg",
+  apiKey: "AIzaSyBamNTH8KZuOg75LmZMcw57WZWBfFqqmBg",
   authDomain: "rto-e-challan-2fbc9.firebaseapp.com",
   databaseURL: "https://rto-e-challan-2fbc9-default-rtdb.firebaseio.com",
   projectId: "rto-e-challan-2fbc9",
   storageBucket: "rto-e-challan-2fbc9.firebasestorage.app",
   messagingSenderId: "580128087099",
-  appId: "1:580128087099:web:c2ff5a1496d461520d01e"
+  appId: "1:580128087099:web:c2ff5a1496d4611520d01e"
 };
 
 // Initialize Firebase
