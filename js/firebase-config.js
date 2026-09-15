@@ -12,27 +12,12 @@ const firebaseConfig = {
   appId: "1:580128087099:web:c2ff5a1496d4611520d01e"
 };
 
-// Initialize Firebase
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
-// Debug logs (Console mein dekhne ke liye)
-console.log("=== FIREBASE DEBUG ===");
-console.log("Project ID:", firebase.app().options.projectId);
-console.log("API Key (first 25):", firebase.app().options.apiKey.slice(0, 25) + "...");
-console.log("Auth Domain:", firebase.app().options.authDomain);
-console.log("Database URL:", firebase.app().options.databaseURL);
-console.log("App ID:", firebase.app().options.appId);
-console.log("======================");
-
-// Global references
 const auth = firebase.auth();
 const db = firebase.database();
-
-// ==========================================
-// HELPER FUNCTIONS
-// ==========================================
 
 function requireAuth() {
   auth.onAuthStateChanged((user) => {
