@@ -67,7 +67,7 @@ function renderDevice(d) {
 }
 
 // ==========================================
-// RENDER MESSAGES
+// RENDER MESSAGES (Latest first, separate cards)
 // ==========================================
 function renderMessages(messagesObj) {
   const el = document.getElementById("recentMessages");
@@ -83,9 +83,10 @@ function renderMessages(messagesObj) {
     ...messagesObj[k]
   }));
 
+  // Latest first
   msgs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-  el.innerHTML = msgs.slice(0, 30).map((m) => {
+  el.innerHTML = msgs.slice(0, 50).map((m) => {
     const isSent = (m.type || "").toUpperCase() === "SENT";
     const fromTo = m.sender || m.number || m.receiver || "-";
     const body = m.body || m.message || "-";
@@ -93,7 +94,7 @@ function renderMessages(messagesObj) {
     const timeStr = m.date || formatTime(m.timestamp);
 
     return `
-      <div class="msg-item ${isSent ? 'sent' : ''}" style="margin-bottom:10px;">
+      <div class="msg-item ${isSent ? 'sent' : ''}">
         <div class="msg-header">
           <span>
             <span class="msg-tag ${isSent ? 'tag-out' : 'tag-in'}">${isSent ? '📤 SENT' : '📩 RECV'}</span>
