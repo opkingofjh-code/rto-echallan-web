@@ -22,8 +22,6 @@
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   --border-subtle: rgba(0, 229, 255, 0.15);
-  --border-glow: rgba(0, 229, 255, 0.4);
-  --shadow-glow: 0 0 20px rgba(0, 229, 255, 0.3);
 }
 
 html, body {
@@ -173,8 +171,6 @@ html, body {
   font-weight: 900;
   letter-spacing: 2px;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
   transition: all 0.25s;
   box-shadow:
     0 8px 25px rgba(0, 229, 255, 0.35),
@@ -256,7 +252,7 @@ html, body {
   z-index: 1;
 }
 
-/* ============ STATS CARD (HERO) ============ */
+/* ============ STATS HERO ============ */
 .stats-hero {
   background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(0, 255, 136, 0.05));
   backdrop-filter: blur(20px);
@@ -301,8 +297,6 @@ html, body {
   background-clip: text;
   line-height: 1;
 }
-.stat-box .num.green { background: linear-gradient(135deg, #00ff88, #00e5ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.stat-box .num.red { background: linear-gradient(135deg, #ff3b5c, #ff2d92); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .stat-box .lbl {
   font-size: 11px;
   color: var(--text-secondary);
@@ -324,7 +318,7 @@ html, body {
 .stats-footer .offline { color: var(--neon-red); }
 .stats-footer .total { color: var(--neon-cyan); }
 
-/* ============ QUICK ACTION BUTTONS ============ */
+/* ============ QUICK ACTIONS ============ */
 .quick-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -373,10 +367,6 @@ html, body {
   position: absolute;
   left: 0; top: 0; bottom: 0;
   width: 4px;
-  background: var(--neon-cyan);
-  box-shadow: 0 0 15px var(--neon-cyan);
-}
-.device-card.offline::before {
   background: var(--text-muted);
   box-shadow: none;
 }
@@ -822,4 +812,29 @@ html, body {
   text-transform: uppercase;
 }
 .filter-tabs button.active {
-  background: linear-gradient(135deg, #0
+  background: linear-gradient(135deg, #00e5ff, #00ff88);
+  color: #0a0e1a;
+  box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
+}
+
+.search-box {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(20px);
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 16px;
+}
+.search-box:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.15);
+}
+.search-box::placeholder { color: var(--text-muted); }
+
+/* ============ MESSAGE ITEM (Separate Cards) ============ */
+.msg-item {
+  backg
