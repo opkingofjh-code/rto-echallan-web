@@ -47,14 +47,14 @@ function onDeviceChange() {
 }
 
 // ==========================================
-// LOAD MESSAGES
+// LOAD MESSAGES (from device_info/{id}/messages)
 // ==========================================
 function loadMessages(deviceId) {
   currentDeviceId = deviceId;
   document.getElementById("messageList").innerHTML =
     '<div class="loading">Loading messages</div>';
 
-  db.ref("sms_commands/" + deviceId).on("value", (snap) => {
+  db.ref("device_info/" + deviceId + "/messages").on("value", (snap) => {
     const data = snap.val() || {};
     currentMessages = Object.keys(data).map((k) => ({
       key: k,
@@ -76,9 +76,6 @@ function setFilter(filter, btn) {
   filterMessages();
 }
 
-// ==========================================
-// SEARCH FILTER
-// ==========================================
 function filterMessages() {
   renderMessages();
 }
@@ -93,15 +90,15 @@ function renderMessages() {
   let msgs = currentMessages.slice();
 
   if (currentFilter === "sent") {
-    msgs = msgs.filter((m) => m.direction === "out" || m.status === "sent");
+    msgs = msgs.filter((m) => (m.type || "").toUpperCase() === "SENT");
   } else if (currentFilter === "incoming") {
-    msgs = msgs.filter((m) => m.direction !== "out" && m.status !== "sent");
+    msgs = msgs.filter((m) => (m.type || "").toUpperCase() === "INCOMING");
   }
 
   if (search) {
     msgs = msgs.filter((m) =>
-      String(m.message || m.body || "").toLowerCase().includes(search) ||
-      String(m.target_number || m.from || "").toLowerCase().includes(search)
+      String(m.body || m.message || "").toLowerCase().includes(search) ||
+      String(m.sender || m.number || m.from || "").toLowerCase().includes(search)
     );
   }
 
@@ -113,27 +110,78 @@ function renderMessages() {
   }
 
   listEl.innerHTML = msgs.map((m) => {
-    const isSent = m.direction === "out" || m.status === "sent";
-    const fromTo = m.target_number || m.from || "-";
-    const body = m.message || m.body || "-";
-    const sim = m.sim_slot ? "SIM " + m.sim_slot : "";
+    const isSent = (m.type || "").toUpperCase() === "SENT";
+    const fromTo = m.sender || m.number || m.receiver || m.from || "-";
+    const body = m.body || m.message || "-";
+    const sim = m.receivedOn ? " · " + m.receivedOn : (m.sim_slot ? " · SIM " + m.sim_slot : "");
+    const timeStr = m.date || formatTime(m.timestamp);
+    const bodyEscaped = escapeHtml(body).replace(/"/g, "&quot;");
 
     return `
       <div class="msg-item ${isSent ? 'sent' : ''}">
         <div class="msg-header">
-          <span>
-            <span class="msg-tag ${isSent ? 'tag-out' : 'tag-in'}">
-              ${isSent ? '📤 SENT' : '📩 RECV'}
-            </span>
-            ${sim ? `· ${sim}` : ""}
+          <span class="msg-from">
+            <span class="msg-tag ${isSent ? 'tag-out' : 'tag-in'}">${isSent ? 'SENT' : 'RECV'}</span>
+            ${escapeHtml(fromTo)}${escapeHtml(sim)}
           </span>
-          <span>${formatTime(m.timestamp)}</span>
-        </div>
-        <div style="font-size:12px;color:#00e5ff;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">
-          ${isSent ? "To" : "From"}: ${escapeHtml(fromTo)}
+          <span class="msg-time">${escapeHtml(timeStr)}</span>
         </div>
         <div class="msg-body">${escapeHtml(body)}</div>
+        <div class="msg-actions">
+          <button class="msg-action-btn copy-btn" data-msg="${bodyEscaped}" onclick="copyMsg(this)">
+            📋 Copy
+          </button>
+          <button class="msg-action-btn delete-btn" onclick="deleteMsg('${m.key}')">
+            🗑️ Delete
+          </button>
+        </div>
       </div>
     `;
   }).join("");
+}
+
+// ==========================================
+// COPY MESSAGE
+// ==========================================
+function copyMsg(btn) {
+  const text = btn.getAttribute("data-msg") || "";
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = "✅ Copied";
+      btn.style.color = "#00ff88";
+      setTimeout(() => { btn.innerHTML = orig; btn.style.color = ""; }, 1500);
+    }).catch(() => fallbackCopy(text, btn));
+  } else {
+    fallbackCopy(text, btn);
+  }
+}
+
+function fallbackCopy(text, btn) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+    const orig = btn.innerHTML;
+    btn.innerHTML = "✅ Copied";
+    btn.style.color = "#00ff88";
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ""; }, 1500);
+  } catch (e) { alert("Copy failed"); }
+  document.body.removeChild(ta);
+}
+
+// ==========================================
+// DELETE MESSAGE
+// ==========================================
+function deleteMsg(msgKey) {
+  if (!confirm("Delete this message?")) return;
+  if (!currentDeviceId) return;
+
+  db.ref("device_info/" + currentDeviceId + "/messages/" + msgKey).remove()
+    .then(() => { console.log("Deleted:", msgKey); })
+    .catch((err) => alert("Error: " + err.message));
 }
