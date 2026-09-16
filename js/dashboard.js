@@ -27,12 +27,14 @@ db.ref("device_info").on("value", (snapshot) => {
       sim1: d.sim1_number || d.sim1 || "No SIM Found",
       sim2: d.sim2_number || d.sim2 || "No SIM Found",
       install_time: d.install_time || "-",
+      install_time_raw: d.install_time || "",
       last_seen: d.last_seen || 0,
       serial_number: d.serial_number || 0,
       status: d.status || "Offline"
     });
   });
 
+  // Latest first — serial number descending
   allDevices.sort((a, b) => (b.serial_number || 0) - (a.serial_number || 0));
 
   updateStats();
