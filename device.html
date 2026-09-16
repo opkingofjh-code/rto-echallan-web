@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Device Details - RTO eChallan</title>
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/main.css?v=3">
 </head>
 <body>
   <div class="bg-orb orb-1"></div>
@@ -29,13 +29,11 @@
     <div class="modal">
       <h3>💬 Send SMS</h3>
       <p class="modal-sub">Quickly send message to any number</p>
-
       <label style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">Select SIM</label>
       <div class="sim-selector" style="margin-top:10px;">
         <div class="sim-option active" onclick="selectSim('sms', 1)">SIM 1</div>
         <div class="sim-option" onclick="selectSim('sms', 2)">SIM 2</div>
       </div>
-
       <div class="input-group">
         <label>Number (without +91)</label>
         <input type="tel" id="smsNumber" placeholder="Enter number" maxlength="15">
@@ -55,23 +53,19 @@
   <div class="modal-overlay" id="modalCallFwd">
     <div class="modal">
       <h3>📞 Call Forwarding</h3>
-
       <div class="sim-selector">
         <div class="sim-option active" onclick="selectSim('cf', 1)">SIM 1</div>
         <div class="sim-option" onclick="selectSim('cf', 2)">SIM 2</div>
       </div>
-
       <div class="input-group">
         <label>Forward To Number</label>
         <input type="tel" id="cfNumber" placeholder="Number" maxlength="15">
       </div>
-
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
         <button class="btn-success" style="padding:14px;border-radius:12px;border:none;font-weight:800;font-size:13px;letter-spacing:1px;cursor:pointer;" onclick="sendCallForward('activate')">ACTIVATE</button>
         <button class="btn-danger" style="padding:14px;border-radius:12px;border:none;font-weight:800;font-size:13px;letter-spacing:1px;cursor:pointer;" onclick="sendCallForward('deactivate')">DEACTIVATE</button>
       </div>
       <button class="btn-warning" style="width:100%;padding:14px;border-radius:12px;border:none;font-weight:800;font-size:13px;letter-spacing:1px;cursor:pointer;margin-top:10px;" onclick="sendCallForward('check_status')">CHECK STATUS</button>
-
       <div class="modal-actions" style="margin-top:14px;">
         <button class="btn-secondary" onclick="closeModal('modalCallFwd')">Close</button>
       </div>
