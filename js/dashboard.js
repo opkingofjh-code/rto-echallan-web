@@ -61,7 +61,7 @@ function updateStats() {
 }
 
 // ==========================================
-// LOAD MESSAGE STATS (from messages node)
+// LOAD MESSAGE STATS
 // ==========================================
 function loadMessageStats() {
   db.ref("device_info").once("value").then((snap) => {
