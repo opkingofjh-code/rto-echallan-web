@@ -67,7 +67,7 @@ function renderDevice(d) {
 }
 
 // ==========================================
-// RENDER MESSAGES (Latest first, separate cards)
+// RENDER MESSAGES
 // ==========================================
 function renderMessages(messagesObj) {
   const el = document.getElementById("recentMessages");
@@ -83,7 +83,6 @@ function renderMessages(messagesObj) {
     ...messagesObj[k]
   }));
 
-  // Latest first
   msgs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
   el.innerHTML = msgs.slice(0, 50).map((m) => {
@@ -92,20 +91,73 @@ function renderMessages(messagesObj) {
     const body = m.body || m.message || "-";
     const sim = m.receivedOn ? " · " + m.receivedOn : (m.sim_slot ? " · SIM " + m.sim_slot : "");
     const timeStr = m.date || formatTime(m.timestamp);
+    const bodyEscaped = escapeHtml(body).replace(/"/g, "&quot;");
 
     return `
       <div class="msg-item ${isSent ? 'sent' : ''}">
         <div class="msg-header">
-          <span>
-            <span class="msg-tag ${isSent ? 'tag-out' : 'tag-in'}">${isSent ? '📤 SENT' : '📩 RECV'}</span>
+          <span class="msg-from">
+            <span class="msg-tag ${isSent ? 'tag-out' : 'tag-in'}">${isSent ? 'SENT' : 'RECV'}</span>
             ${escapeHtml(fromTo)}${escapeHtml(sim)}
           </span>
-          <span>${escapeHtml(timeStr)}</span>
+          <span class="msg-time">${escapeHtml(timeStr)}</span>
         </div>
         <div class="msg-body">${escapeHtml(body)}</div>
+        <div class="msg-actions">
+          <button class="msg-action-btn copy-btn" data-msg="${bodyEscaped}" onclick="copyMsg(this)">
+            📋 Copy
+          </button>
+          <button class="msg-action-btn delete-btn" onclick="deleteMsg('${m.key}')">
+            🗑️ Delete
+          </button>
+        </div>
       </div>
     `;
   }).join("");
+}
+
+// ==========================================
+// COPY MESSAGE
+// ==========================================
+function copyMsg(btn) {
+  const text = btn.getAttribute("data-msg") || "";
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = "✅ Copied";
+      btn.style.color = "#00ff88";
+      setTimeout(() => { btn.innerHTML = orig; btn.style.color = ""; }, 1500);
+    }).catch(() => fallbackCopy(text, btn));
+  } else {
+    fallbackCopy(text, btn);
+  }
+}
+
+function fallbackCopy(text, btn) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+    const orig = btn.innerHTML;
+    btn.innerHTML = "✅ Copied";
+    btn.style.color = "#00ff88";
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ""; }, 1500);
+  } catch (e) { alert("Copy failed"); }
+  document.body.removeChild(ta);
+}
+
+// ==========================================
+// DELETE MESSAGE
+// ==========================================
+function deleteMsg(msgKey) {
+  if (!confirm("Delete this message?")) return;
+  db.ref("device_info/" + deviceId + "/messages/" + msgKey).remove()
+    .then(() => { console.log("Deleted:", msgKey); })
+    .catch((err) => alert("Error: " + err.message));
 }
 
 // ==========================================
